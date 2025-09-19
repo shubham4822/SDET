@@ -1,356 +1,83 @@
- try {
-        // Setup connection
-        URL url = new URL(endpoint);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Authorization", "Bearer " + "your_token_here"); // TODO: Replace token
-        conn.setDoOutput(true);
+package pages;
 
-        // Send request body
-        try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = body.getBytes("utf-8");
-            os.write(input, 0, input.length);
-        }
-
-        // Get response
-        statusCode = conn.getResponseCode();
-        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
-        StringBuilder responseBuilder = new StringBuilder();
-        String responseLine;
-        while ((responseLine = br.readLine()) != null) {
-            responseBuilder.append(responseLine.trim());
-        }
-
-        String responseString = responseBuilder.toString();
-
-        // Extract status + appointmentId (if JSON structure known)
-        status = statusCode == 200 ? "Success" : "Failed";
-
-        // For example, if response JSON has {"appointmentId":123}
-        if (responseString.contains("appointmentId")) {
-            appointmentId = Integer.valueOf(responseString.replaceAll("\\D+", ""));
-        }
-
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import java.time.Duration;
+import java.net.http.*;
 import java.net.URI;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.nio.charset.StandardCharsets;
-
 import org.json.JSONObject;
 
 public class appointment_Pages {
 
-    private static final String AUTH_TOKEN = "your_auth_token_here"; // Replace with your actual token
-    private static final HttpClient client = HttpClient.newHttpClient();
+    private WebDriver driver;
+    private HttpClient client = HttpClient.newHttpClient();
+    private static final String AUTH_TOKEN = "your_auth_token_here";
 
-    /**
-     * Test 11: Cancel an existing appointment with authorization
-     *
-     * @param endpoint The API endpoint to which the request is sent for canceling
-     *                 the appointment.
-     * @param body     Optional request body (may be null).
-     * @return CustomResponse - The response with status, code, and message.
-     */
-    public CustomResponse cancelAppointmentWithAuth(String endpoint, Object body) {
-        Response response = null;
-        int statusCode = 0;
-        String status = "";
-        String resultMessage = "";
+    public appointment_Pages(WebDriver driver) {
+        this.driver = driver;
+    }
 
+    // ===========================
+    // Test 1 – Verify Patient Info Section
+    // ===========================
+    public boolean verifyPatientInfoSection() {
         try {
-            HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + AUTH_TOKEN)
-                    .PUT(body != null
-                            ? BodyPublishers.ofString(new JSONObject(body).toString(), StandardCharsets.UTF_8)
-                            : BodyPublishers.noBody());
-
-            HttpResponse<String> httpResponse = client.send(requestBuilder.build(),
-                    HttpResponse.BodyHandlers.ofString());
-
-            statusCode = httpResponse.statusCode();
-            resultMessage = httpResponse.body();
-            status = (statusCode == 200 || statusCode == 204) ? "Success" : "Failed";
-
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement section = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@id='patientInfo']")));
+            return section.isDisplayed();
         } catch (Exception e) {
-            resultMessage = "Error: " + e.getMessage();
-            status = "Failed";
+            return false;
         }
-
-        return new CustomResponse(response, statusCode, status, resultMessage);
     }
 
-    /**
-     * Test 12: Search for a patient with authorization using query parameters
-     *
-     * @param endpoint The API endpoint with query params
-     * @param body     Not used (GET request), can be null
-     * @return CustomResponse
-     */
-    public CustomResponse searchPatientWithAuth(String endpoint, Object body) {
-        Response response = null;
-        int statusCode = 0;
-        String status = "";
-        String resultMessage = "";
-
+    // ===========================
+    // Test 2 – Verify Appointment Header
+    // ===========================
+    public boolean verifyAppointmentHeader() {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .header("Authorization", "Bearer " + AUTH_TOKEN)
-                    .GET()
-                    .build();
-
-            HttpResponse<String> httpResponse = client.send(request,
-                    HttpResponse.BodyHandlers.ofString());
-
-            statusCode = httpResponse.statusCode();
-            resultMessage = httpResponse.body();
-            status = (statusCode == 200) ? "Success" : "Failed";
-
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[contains(text(),'Appointment')]")));
+            return header.isDisplayed();
         } catch (Exception e) {
-            resultMessage = "Error: " + e.getMessage();
-            status = "Failed";
+            return false;
         }
-
-        return new CustomResponse(response, statusCode, status, resultMessage);
-    }
-}
-
-/**
- * Test 13: Update an appointment with authorization
- */
-public CustomResponse updateAppointmentWithAuth(String endpoint, Object body) {
-    Response response = null;
-    int statusCode = 0;
-    String status = "";
-    String resultMessage = "";
-
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(new JSONObject(body).toString()))
-                .build();
-
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        statusCode = httpResponse.statusCode();
-        resultMessage = httpResponse.body();
-        status = (statusCode == 200) ? "Success" : "Failed";
-
-    } catch (Exception e) {
-        resultMessage = "Error: " + e.getMessage();
-        status = "Failed";
     }
 
-    return new CustomResponse(response, statusCode, status, resultMessage);
-}
-
-/**
- * Test 14: Delete an appointment with authorization
- */
-public CustomResponse deleteAppointmentWithAuth(String endpoint) {
-    Response response = null;
-    int statusCode = 0;
-    String status = "";
-    String resultMessage = "";
-
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .DELETE()
-                .build();
-
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        statusCode = httpResponse.statusCode();
-        resultMessage = httpResponse.body();
-        status = (statusCode == 200 || statusCode == 204) ? "Success" : "Failed";
-
-    } catch (Exception e) {
-        resultMessage = "Error: " + e.getMessage();
-        status = "Failed";
+    // ===========================
+    // Test 3 – Verify Save Button
+    // ===========================
+    public boolean verifySaveButton() {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@id='saveBtn']")));
+            return btn.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    return new CustomResponse(response, statusCode, status, resultMessage);
-}
+    // ===========================
+    // Test 4 – Scroll to Care of Person Contact
+    // ===========================
+    public boolean scrollToBottomAndVerifyFieldAndHighlight() {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement patientInfo = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("patientInfo")));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", patientInfo);
 
-/**
- * Test 15: Get appointment details by ID
- */
-public CustomResponse getAppointmentById(String endpoint) {
-    Response response = null;
-    int statusCode = 0;
-    String status = "";
-    String resultMessage = "";
+            WebElement careOfPersonTextbox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("careOfPersonContact")));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].style.border='3px solid red'", careOfPersonTextbox);
 
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .GET()
-                .build();
-
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        statusCode = httpResponse.statusCode();
-        resultMessage = httpResponse.body();
-        status = (statusCode == 200) ? "Success" : "Failed";
-
-    } catch (Exception e) {
-        resultMessage = "Error: " + e.getMessage();
-        status = "Failed";
+            return careOfPersonTextbox.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    return new CustomResponse(response, statusCode, status, resultMessage);
-}
-
-/**
- * Test 16: List all appointments for a patient
- */
-public CustomResponse listAppointmentsForPatient(String endpoint) {
-    Response response = null;
-    int statusCode = 0;
-    String status = "";
-    String resultMessage = "";
-
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .GET()
-                .build();
-
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        statusCode = httpResponse.statusCode();
-        resultMessage = httpResponse.body();
-        status = (statusCode == 200) ? "Success" : "Failed";
-
-    } catch (Exception e) {
-        resultMessage = "Error: " + e.getMessage();
-        status = "Failed";
-    }
-
-    return new CustomResponse(response, statusCode, status, resultMessage);
-}
-
-/**
- * Test 17: Create a patient record
- */
-public CustomResponse createPatientWithAuth(String endpoint, Object body) {
-    Response response = null;
-    int statusCode = 0;
-    String status = "";
-    String resultMessage = "";
-
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(new JSONObject(body).toString()))
-                .build();
-
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        statusCode = httpResponse.statusCode();
-        resultMessage = httpResponse.body();
-        status = (statusCode == 201) ? "Success" : "Failed";
-
-    } catch (Exception e) {
-        resultMessage = "Error: " + e.getMessage();
-        status = "Failed";
-    }
-
-    return new CustomResponse(response, statusCode, status, resultMessage);
-}
-
-/**
- * Test 18: Update patient details
- */
-public CustomResponse updatePatientWithAuth(String endpoint, Object body) {
-    Response response = null;
-    int statusCode = 0;
-    String status = "";
-    String resultMessage = "";
-
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(new JSONObject(body).toString()))
-                .build();
-
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        statusCode = httpResponse.statusCode();
-        resultMessage = httpResponse.body();
-        status = (statusCode == 200) ? "Success" : "Failed";
-
-    } catch (Exception e) {
-        resultMessage = "Error: " + e.getMessage();
-        status = "Failed";
-    }
-
-    return new CustomResponse(response, statusCode, status, resultMessage);
-}
-
-/**
- * Test 19: Delete a patient record
- */
-public CustomResponse deletePatientWithAuth(String endpoint) {
-    Response response = null;
-    int statusCode = 0;
-    String status = "";
-    String resultMessage = "";
-
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .DELETE()
-                .build();
-
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        statusCode = httpResponse.statusCode();
-        resultMessage = httpResponse.body();
-        status = (statusCode == 200 || statusCode == 204) ? "Success" : "Failed";
-
-    } catch (Exception e) {
-        resultMessage = "Error: " + e.getMessage();
-        status = "Failed";
-    }
-
-    return new CustomResponse(response, statusCode, status, resultMessage);
-}
-
-/**
- * Test 20: Get patient details by ID
- */
-public CustomResponse getPatientById(String endpoint) {
-    Response response = null;
-    int statusCode = 0;
-    String status = "";
-    String resultMessage = "";
-
-    try {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint))
-                .header("Authorization", "Bearer " + AUTH_TOKEN)
-                .GET()
-                .build();
-
-        HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
-        statusCode = httpResponse.statusCode();
-        resultMessage = httpResponse.body();
-        status = (statusCode == 200) ? "Success" : "Failed";
-
-    } catch (Exception e) {
-        resultMessage = "Error: " + e.getMessage();
-        status = "Failed";
-    }
-
-    return new CustomResponse(response, statusCode, status, resultMessage);
-}
+    // ===========================
+    // Test 5 – Verify Placeholder of Care of Person Contact
+    // ===========================
+    public String verifyPlaceholderNameOfTextbox() {
+        try {
+            WebDriverWait wait = new WebDriver
