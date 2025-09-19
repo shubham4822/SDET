@@ -80,4 +80,266 @@ public class appointment_Pages {
     // ===========================
     public String verifyPlaceholderNameOfTextbox() {
         try {
-            WebDriverWait wait = new WebDriver
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement careOfPersonTextbox = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("careOfPersonContact")));
+            return careOfPersonTextbox.getAttribute("placeholder");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    // ===========================
+    // Test 6 – Verify Dropdown Appointment Type
+    // ===========================
+    public boolean verifyAppointmentTypeDropdown() {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement dropdown = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//select[@id='appointmentType']")));
+            return dropdown.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // ===========================
+    // Test 7 – Verify Calendar Icon
+    // ===========================
+    public boolean verifyCalendarIcon() {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement calendar = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@id='appointmentDate']//following-sibling::button")));
+            return calendar.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // ===========================
+    // Test 8 – Verify Notes Textarea
+    // ===========================
+    public boolean verifyNotesTextbox() {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement notes = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//textarea[@id='notes']")));
+            return notes.isDisplayed();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // ===========================
+    // Test 9 – Verify Success Notification Popup
+    // ===========================
+    public String verifySuccessNotificationPopupMessage() {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement popup = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='notification success']")));
+            return popup.getText();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    // ===========================
+    // Test 10 – Create Appointment with Auth (POST)
+    // ===========================
+    public CustomResponse createAppointmentWithAuth(String endpoint, String body) {
+        Response response = null;
+        int statusCode = 0;
+        String status = "";
+        String resultMessage = "";
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Authorization", "Bearer " + AUTH_TOKEN)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+            statusCode = httpResponse.statusCode();
+            resultMessage = httpResponse.body();
+            status = (statusCode == 201) ? "Success" : "Failed";
+
+        } catch (Exception e) {
+            resultMessage = "Error: " + e.getMessage();
+            status = "Failed";
+        }
+        return new CustomResponse(response, statusCode, status, resultMessage);
+    }
+
+    // ===========================
+    // Test 11 – Cancel Appointment with Auth (PUT)
+    // ===========================
+    public CustomResponse cancelAppointmentWithAuth(String endpoint, String body) {
+        Response response = null;
+        int statusCode = 0;
+        String status = "";
+        String resultMessage = "";
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Authorization", "Bearer " + AUTH_TOKEN)
+                    .header("Content-Type", "application/json")
+                    .PUT(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+            statusCode = httpResponse.statusCode();
+            resultMessage = httpResponse.body();
+            status = (statusCode == 200) ? "Success" : "Failed";
+
+        } catch (Exception e) {
+            resultMessage = "Error: " + e.getMessage();
+            status = "Failed";
+        }
+        return new CustomResponse(response, statusCode, status, resultMessage);
+    }
+
+    // ===========================
+    // Test 12 – Search Patient with Auth (GET + Params)
+    // ===========================
+    public CustomResponse searchPatientWithAuth(String endpoint) {
+        Response response = null;
+        int statusCode = 0;
+        String status = "";
+        String resultMessage = "";
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Authorization", "Bearer " + AUTH_TOKEN)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+            statusCode = httpResponse.statusCode();
+            resultMessage = httpResponse.body();
+            status = (statusCode == 200) ? "Success" : "Failed";
+
+        } catch (Exception e) {
+            resultMessage = "Error: " + e.getMessage();
+            status = "Failed";
+        }
+        return new CustomResponse(response, statusCode, status, resultMessage);
+    }
+
+    // ===========================
+    // Test 13 – Update Appointment
+    // ===========================
+    public CustomResponse updateAppointmentWithAuth(String endpoint, Object body) {
+        return performPutRequest(endpoint, body);
+    }
+
+    // ===========================
+    // Test 14 – Delete Appointment
+    // ===========================
+    public CustomResponse deleteAppointmentWithAuth(String endpoint) {
+        return performDeleteRequest(endpoint);
+    }
+
+    // ===========================
+    // Test 15 – Get Appointment by ID
+    // ===========================
+    public CustomResponse getAppointmentById(String endpoint) {
+        return performGetRequest(endpoint);
+    }
+
+    // ===========================
+    // Test 16 – List Appointments for Patient
+    // ===========================
+    public CustomResponse listAppointmentsForPatient(String endpoint) {
+        return performGetRequest(endpoint);
+    }
+
+    // ===========================
+    // Test 17 – Create Patient
+    // ===========================
+    public CustomResponse createPatientWithAuth(String endpoint, Object body) {
+        return performPostRequest(endpoint, body);
+    }
+
+    // ===========================
+    // Test 18 – Update Patient
+    // ===========================
+    public CustomResponse updatePatientWithAuth(String endpoint, Object body) {
+        return performPutRequest(endpoint, body);
+    }
+
+    // ===========================
+    // Test 19 – Delete Patient
+    // ===========================
+    public CustomResponse deletePatientWithAuth(String endpoint) {
+        return performDeleteRequest(endpoint);
+    }
+
+    // ===========================
+    // Test 20 – Get Patient by ID
+    // ===========================
+    public CustomResponse getPatientById(String endpoint) {
+        return performGetRequest(endpoint);
+    }
+
+    // ===========================
+    // 🔹 Helper Methods for API Calls
+    // ===========================
+    private CustomResponse performGetRequest(String endpoint) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Authorization", "Bearer " + AUTH_TOKEN)
+                    .GET()
+                    .build();
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return new CustomResponse(null, httpResponse.statusCode(), "Success", httpResponse.body());
+        } catch (Exception e) {
+            return new CustomResponse(null, 500, "Failed", "Error: " + e.getMessage());
+        }
+    }
+
+    private CustomResponse performPostRequest(String endpoint, Object body) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Authorization", "Bearer " + AUTH_TOKEN)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(new JSONObject(body).toString()))
+                    .build();
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return new CustomResponse(null, httpResponse.statusCode(), "Success", httpResponse.body());
+        } catch (Exception e) {
+            return new CustomResponse(null, 500, "Failed", "Error: " + e.getMessage());
+        }
+    }
+
+    private CustomResponse performPutRequest(String endpoint, Object body) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Authorization", "Bearer " + AUTH_TOKEN)
+                    .header("Content-Type", "application/json")
+                    .PUT(HttpRequest.BodyPublishers.ofString(new JSONObject(body).toString()))
+                    .build();
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return new CustomResponse(null, httpResponse.statusCode(), "Success", httpResponse.body());
+        } catch (Exception e) {
+            return new CustomResponse(null, 500, "Failed", "Error: " + e.getMessage());
+        }
+    }
+
+    private CustomResponse performDeleteRequest(String endpoint) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Authorization", "Bearer " + AUTH_TOKEN)
+                    .DELETE()
+                    .build();
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+            return new CustomResponse(null, httpResponse.statusCode(), "Success", httpResponse.body());
+        } catch (Exception e) {
+            return new CustomResponse(null, 500, "Failed", "Error: " + e.getMessage());
+        }
+    }
+}
